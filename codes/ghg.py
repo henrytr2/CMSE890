@@ -117,3 +117,7 @@ plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.legend()
 plt.show()
+
+Found 7080 images belonging to 2 classes.
+Found 0 images belonging to 2 classes.
+    
