@@ -6,7 +6,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 import matplotlib.pyplot as plt
 
 # Set the path to your dataset
-base_dir = 'D:\CODES'
+base_dir = 'D:/CODES'
 data_dir = os.path.join(base_dir, 'TransClassImgData')
 
 # Load and read the image folder as "imds" and its 2 subfolders along with the 2 associated labels of each image
@@ -27,7 +27,7 @@ train_generator = train_datagen.flow_from_directory(
     data_dir,
     target_size=(224, 256),
     batch_size=8,
-    class_mode='binary',  # 'categorical' for multi-class classification
+    class_mode='binary',  # 'binary' for binary classification
     subset='training'
 )
 
@@ -82,12 +82,11 @@ model = models.Sequential([
     layers.MaxPooling2D(2, strides=2),
     
     layers.Flatten(),
-    layers.Dense(2, activation='softmax')  # 'softmax' for multi-class classification
+    layers.Dense(1, activation='sigmoid')  # 'sigmoid' for binary classification
 ])
+
 # Compile the model
-model.compile(optimizer='adam',
-              loss='categorical_crossentropy',
-              metrics=['accuracy'])
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
 # Add EarlyStopping callback
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
@@ -117,7 +116,7 @@ test_generator = train_datagen.flow_from_directory(
     data_dir,
     target_size=(224, 256),
     batch_size=8,
-    class_mode='categorical',
+    class_mode='binary',
     subset='validation'
 )
 
