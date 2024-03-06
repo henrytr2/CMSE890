@@ -6,13 +6,13 @@ from tensorflow.keras.callbacks import EarlyStopping
 import matplotlib.pyplot as plt
 
 # Set the path to your dataset
-base_dir = 'D:\CODES'
+base_dir = 'D:/CODES'
 data_dir = os.path.join(base_dir, 'TransClassImgData')
 
 # Define parameters
 batch_size = 32
 img_height = 224
-img_width = 224
+img_width = 256
 epochs = 30
 
 # Data augmentation and generators
@@ -25,9 +25,9 @@ train_datagen = ImageDataGenerator(
     zoom_range=0.2,
     horizontal_flip=True,
     fill_mode='nearest',
-    validation_split=0.2
 )
 
+# Split the data into training and validation sets manually
 train_generator = train_datagen.flow_from_directory(
     data_dir,
     target_size=(img_height, img_width),
@@ -46,7 +46,7 @@ validation_generator = train_datagen.flow_from_directory(
 
 # Model architecture
 model = models.Sequential([
-    layers.Conv2D(64, (3, 3), activation='relu', input_shape=(224, 256, 3)),
+    layers.Conv2D(64, (3, 3), activation='relu', input_shape=(img_height, img_width, 3)),
     layers.BatchNormalization(),
     layers.ReLU(),
     layers.Conv2D(64, (3, 3), activation='relu'),
@@ -90,7 +90,6 @@ model = models.Sequential([
     layers.Dense(1, activation='sigmoid')  # 'sigmoid' for binary classification
 ])
 
-
 # Compile the model
 model.compile(optimizer='adam',
               loss='binary_crossentropy',
@@ -108,7 +107,7 @@ history = model.fit(
     validation_steps=validation_generator.samples // batch_size,
     callbacks=[early_stopping],
     shuffle=True,  # Customize shuffle behavior if needed
-    verbose=1  # Set to 1 for progress bar, 0 for no output
+    verbose=1  # Set to 1 for a progress bar, 0 for no output
 )
 
 # Plot training history
