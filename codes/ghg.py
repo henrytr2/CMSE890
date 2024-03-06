@@ -6,40 +6,45 @@ from tensorflow.keras.callbacks import EarlyStopping
 import matplotlib.pyplot as plt
 
 # Set the path to your dataset
-base_dir = 'D:/CODES'
+base_dir = 'D:\CODES'
 data_dir = os.path.join(base_dir, 'TransClassImgData')
 
-# Load and read the image folder as "imds" and its 2 subfolders along with the 2 associated labels of each image
-# Use ImageDataGenerator for data augmentation
+# Define parameters
+batch_size = 32
+img_height = 224
+img_width = 224
+epochs = 30
+
+# Data augmentation and generators
 train_datagen = ImageDataGenerator(
     rescale=1./255,
-    rotation_range=10,
+    rotation_range=40,
     width_shift_range=0.2,
     height_shift_range=0.2,
-    shear_range=10,
-    zoom_range=0.1,
+    shear_range=0.2,
+    zoom_range=0.2,
     horizontal_flip=True,
-    fill_mode='nearest'
+    fill_mode='nearest',
+    validation_split=0.2
 )
 
-# Create training, validation, and testing generators
 train_generator = train_datagen.flow_from_directory(
     data_dir,
-    target_size=(224, 256),
-    batch_size=8,
-    class_mode='binary',  # 'binary' for binary classification
+    target_size=(img_height, img_width),
+    batch_size=batch_size,
+    class_mode='binary',
     subset='training'
 )
 
 validation_generator = train_datagen.flow_from_directory(
     data_dir,
-    target_size=(224, 256),
-    batch_size=8,
+    target_size=(img_height, img_width),
+    batch_size=batch_size,
     class_mode='binary',
     subset='validation'
 )
 
-# Build the CNN architecture
+# Model architecture
 model = models.Sequential([
     layers.Conv2D(64, (3, 3), activation='relu', input_shape=(224, 256, 3)),
     layers.BatchNormalization(),
@@ -85,22 +90,25 @@ model = models.Sequential([
     layers.Dense(1, activation='sigmoid')  # 'sigmoid' for binary classification
 ])
 
+
 # Compile the model
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+model.compile(optimizer='adam',
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
 
 # Add EarlyStopping callback
-early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
 # Train the model
 history = model.fit(
     train_generator,
-    steps_per_epoch=len(train_generator),
-    epochs=5,
+    steps_per_epoch=train_generator.samples // batch_size,
+    epochs=epochs,
     validation_data=validation_generator,
-    validation_steps=len(validation_generator),
+    validation_steps=validation_generator.samples // batch_size,
     callbacks=[early_stopping],
-    shuffle=True,
-    verbose=1
+    shuffle=True,  # Customize shuffle behavior if needed
+    verbose=1  # Set to 1 for progress bar, 0 for no output
 )
 
 # Plot training history
@@ -110,15 +118,3 @@ plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.legend()
 plt.show()
-
-# Network assessment - Testing the network
-test_generator = train_datagen.flow_from_directory(
-    data_dir,
-    target_size=(224, 256),
-    batch_size=8,
-    class_mode='binary',
-    subset='validation'
-)
-
-test_loss, test_accuracy = model.evaluate(test_generator)
-print(f'Test Accuracy: {test_accuracy * 100:.2f}%')
